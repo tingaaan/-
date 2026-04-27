@@ -139,32 +139,13 @@ h1, h2, h3, h4 { font-family: 'Fredoka One', cursive; }
     margin: 0.5rem 0;
 }
 
-/* Dice */
-.dice-face {
-    font-size: 4rem;
-    text-align: center;
-    display: inline-block;
-    animation: diceRoll 0.7s cubic-bezier(.36,.07,.19,.97) both;
-    filter: drop-shadow(0 4px 8px rgba(255,107,157,0.4));
-}
+/* Dice Roll Animation */
 @keyframes diceRoll {
     0%   { transform: scale(0.3) rotate(-90deg); opacity: 0; }
     30%  { transform: scale(1.3) rotate(20deg);  opacity: 1; }
     55%  { transform: scale(0.9) rotate(-10deg); }
     75%  { transform: scale(1.1) rotate(5deg); }
     100% { transform: scale(1)   rotate(0deg); opacity: 1; }
-}
-.dice-container {
-    text-align: center;
-    padding: 0.8rem;
-    background: linear-gradient(135deg, #fff0f5, #ffe4ec);
-    border-radius: 16px;
-    border: 2px solid #ffb6c1;
-    min-height: 90px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
 }
 
 /* Map grid */
@@ -183,17 +164,6 @@ h1, h2, h3, h4 { font-family: 'Fredoka One', cursive; }
     position: relative;
     cursor: default;
 }
-.cell-district { background: #fff0f5; border-color: #ffb6c1; color: #c2185b; }
-.cell-chance   { background: #fff9c4; border-color: #fbc02d; color: #e65100; }
-.cell-fate     { background: #f3e5f5; border-color: #ab47bc; color: #6a1b9a; }
-.cell-tax      { background: #fbe9e7; border-color: #ff5722; color: #bf360c; }
-.cell-jail     { background: #e8eaf6; border-color: #5c6bc0; color: #283593; }
-.cell-go       { background: #e8f5e9; border-color: #43a047; color: #1b5e20; }
-
-.player-token {
-    font-size: 1.1rem;
-    line-height: 1;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -210,102 +180,90 @@ DISTRICTS = {
         "data": [63, 44, 49, 58, 49],
         "task": "由小到大排序並計算平均數",
         "task_type": "sort_mean",
-        "answer": round(sum([63,44,49,58,49])/5, 1),
-        "price": 500,
-        "color": "#e91e63",
+        "answer": 52.6, "mean_ans": 52.6, "median_ans": 49,
+        "price": 500, "color": "#e91e63",
     },
     "信義區": {
         "data": [170, 128, 100, 130, 88],
         "task": "計算平均數",
         "task_type": "mean",
-        "answer": round(sum([170,128,100,130,88])/5, 1),
-        "price": 1200,
-        "color": "#9c27b0",
+        "answer": 123.2, "mean_ans": 123.2, "median_ans": 128,
+        "price": 1200, "color": "#9c27b0",
     },
     "大安區": {
         "data": [98, 121, 36, 85, 178],
         "task": "計算中位數",
         "task_type": "median",
-        "answer": sorted([98,121,36,85,178])[2],
-        "price": 1500,
-        "color": "#3f51b5",
+        "answer": 98, "mean_ans": 103.6, "median_ans": 98,
+        "price": 1500, "color": "#3f51b5",
     },
     "中和區": {
         "data": [20, 22, 17, 33, 65],
         "task": "計算平均數",
         "task_type": "mean",
-        "answer": round(sum([20,22,17,33,65])/5, 1),
-        "price": 350,
-        "color": "#009688",
+        "answer": 31.4, "mean_ans": 31.4, "median_ans": 22,
+        "price": 350, "color": "#009688",
     },
     "板橋區": {
         "data": [51, 10, 69, 53, 39],
         "task": "計算平均數",
         "task_type": "mean",
-        "answer": round(sum([51,10,69,53,39])/5, 1),
-        "price": 400,
-        "color": "#ff5722",
+        "answer": 44.4, "mean_ans": 44.4, "median_ans": 51,
+        "price": 400, "color": "#ff5722",
     },
     "新莊區": {
         "data": [23, 15, 38, 85, 58],
         "task": "計算中位數",
         "task_type": "median",
-        "answer": sorted([23,15,38,85,58])[2],
-        "price": 380,
-        "color": "#795548",
+        "answer": 38, "mean_ans": 43.8, "median_ans": 38,
+        "price": 380, "color": "#795548",
     },
     "淡水區": {
         "data": [48, 35, 64, 13, 30],
         "task": "由小到大排序並找中位數",
         "task_type": "sort_median",
-        "answer": sorted([48,35,64,13,30])[2],
-        "price": 420,
-        "color": "#607d8b",
+        "answer": 35, "mean_ans": 38.0, "median_ans": 35,
+        "price": 420, "color": "#607d8b",
     },
     "新店區": {
         "data": [133, 19, 17, 15, 14],
         "task": "避開極端值計算中位數（去掉133）",
         "task_type": "trimmed_median",
-        "answer": sorted([19,17,15,14])[len(sorted([19,17,15,14]))//2],
-        "price": 450,
-        "color": "#4caf50",
+        "answer": 16.0, "mean_ans": 16.25, "median_ans": 16.0,
+        "price": 450, "color": "#4caf50",
     },
     "三重區": {
         "data": [11, 39, 56, 42, 52],
         "task": "計算平均數",
         "task_type": "mean",
-        "answer": round(sum([11,39,56,42,52])/5, 1),
-        "price": 360,
-        "color": "#ff9800",
+        "answer": 40.0, "mean_ans": 40.0, "median_ans": 42,
+        "price": 360, "color": "#ff9800",
     },
     "士林區": {
         "data": [36, 67, 90, 96, 45],
         "task": "排序並找中位數",
         "task_type": "sort_median",
-        "answer": sorted([36,67,90,96,45])[2],
-        "price": 700,
-        "color": "#00bcd4",
+        "answer": 67, "mean_ans": 66.8, "median_ans": 67,
+        "price": 700, "color": "#00bcd4",
     },
     "北投區": {
         "data": [13, 65, 80, 38, 40],
         "task": "找中位數",
         "task_type": "median",
-        "answer": sorted([13,65,80,38,40])[2],
-        "price": 600,
-        "color": "#8bc34a",
+        "answer": 40, "mean_ans": 47.2, "median_ans": 40,
+        "price": 600, "color": "#8bc34a",
     },
     "中正區": {
         "data": [73, 152, 151, 154, 157],
         "task": "計算平均數",
         "task_type": "mean",
-        "answer": round(sum([73,152,151,154,157])/5, 1),
-        "price": 1000,
-        "color": "#f44336",
+        "answer": 137.4, "mean_ans": 137.4, "median_ans": 152,
+        "price": 1000, "color": "#f44336",
     },
 }
 
 CHANCE_CARDS = [
-    {"title": "實價登錄上路！", "desc": "市場資訊透明化！下次購買地產享 9 折優惠。", "type": "discount", "value": 0.9},
+    {"title": "實價登錄上路！", "desc": "市場資訊透明化！下一次購買地產享 9 折優惠。", "type": "discount", "value": 0.9},
     {"title": "捷運線開通！", "desc": "交通便利帶動房價！你持有的所有地產價值 +10%。", "type": "property_up", "value": 0.1},
     {"title": "政府補貼青安貸款！", "desc": "房市熱絡！所有玩家向你支付 100 萬租金。", "type": "collect_all", "value": 100},
     {"title": "精準預測趨勢！", "desc": "統計天才！擲骰判定：偶數獲得 200 萬獎金。", "type": "dice_bonus", "value": 200},
@@ -313,7 +271,7 @@ CHANCE_CARDS = [
 
 FATE_CARDS = [
     {"title": "央行宣佈升息！", "desc": "貸款壓力增加！請支付銀行 200 萬利息。", "type": "pay_bank", "value": 200},
-    {"title": "出現極端值（豪宅）！", "desc": "數據偏差！你被虛假行情誤導，本回合計算任務難度加倍。", "type": "double_task", "value": 0},
+    {"title": "出現極端值（豪宅）！", "desc": "數據偏差！你被虛假行情誤導，下一次你購買地產時計算任務難度加倍。", "type": "double_task", "value": 0},
     {"title": "地價稅調整！", "desc": "根據你擁有的地產數量，每棟地產需支付 50 萬稅金。", "type": "property_tax", "value": 50},
     {"title": "區域性地震風險！", "desc": "擲骰判定：若擲出 1 或 6，指定一處地產價值 -20%。", "type": "quake", "value": 0.2},
 ]
@@ -344,30 +302,30 @@ BOARD = [
 
 BOARD_SIZE = len(BOARD)
 
-DICE_FACES = {1:"⚀", 2:"⚁", 3:"⚂", 4:"⚃", 5:"⚄", 6:"⚅"}
-
-def dice_svg(n):
-    """Return an SVG of a dice face with n dots, like a real die."""
-    dot_positions = {
-        1: [(60, 60)],
-        2: [(35, 35), (85, 85)],
-        3: [(35, 35), (60, 60), (85, 85)],
-        4: [(35, 35), (85, 35), (35, 85), (85, 85)],
-        5: [(35, 35), (85, 35), (60, 60), (35, 85), (85, 85)],
-        6: [(35, 30), (85, 30), (35, 60), (85, 60), (35, 90), (85, 90)],
+def dice_html(n):
+    """回傳純 HTML+CSS 刻出的真實骰子"""
+    dots_map = {
+        1: [5],
+        2: [1, 9],
+        3: [1, 5, 9],
+        4: [1, 3, 7, 9],
+        5: [1, 3, 5, 7, 9],
+        6: [1, 3, 4, 6, 7, 9]
     }
-    dots_svg = "".join(
-        f'<circle cx="{cx}" cy="{cy}" r="10" fill="#c2185b"/>'
-        for cx, cy in dot_positions[n]
-    )
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">'
-        '<defs><filter id="ds"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#ffb6c180"/></filter></defs>'
-        '<rect x="4" y="4" width="112" height="112" rx="20" ry="20" fill="white" stroke="#ffb6c1" stroke-width="4" filter="url(#ds)"/>'
-        + dots_svg +
-        '</svg>'
-    )
-    return svg
+    grid = ""
+    for i in range(1, 10):
+        if i in dots_map.get(n, [5]):
+            grid += "<div style='width:20px; height:20px; background-color:#ff6b9d; border-radius:50%; margin:4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);'></div>"
+        else:
+            grid += "<div style='width:20px; height:20px; margin:4px;'></div>"
+
+    return f"""
+    <div style='width:96px; height:96px; background-color:white; border:3px solid #ffb6c1; border-radius:18px;
+                display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(3, 1fr);
+                padding:3px; box-shadow:0 4px 10px rgba(255,107,157,0.3); margin:0 auto;'>
+        {grid}
+    </div>
+    """
 
 def fmt(n): return f"{n:,.0f}"
 
@@ -379,7 +337,7 @@ def init_state():
         st.session_state.players = [
             {"name": p["name"], "emoji": p["emoji"], "color": p["color"],
              "money": 3000, "pos": 0, "properties": [], "jail": 0,
-             "discount": 1.0, "alive": True}
+             "discount": 1.0, "double_task": False, "alive": True}
             for p in PLAYERS
         ]
     if "current_player" not in st.session_state:
@@ -400,10 +358,6 @@ def init_state():
         st.session_state.game_over = False
     if "winner" not in st.session_state:
         st.session_state.winner = None
-    if "double_task" not in st.session_state:
-        st.session_state.double_task = False
-    if "answer_submitted" not in st.session_state:
-        st.session_state.answer_submitted = False
 
 init_state()
 
@@ -467,8 +421,8 @@ def apply_card(card, player):
         pay(player, v)
         st.session_state.message = f"🏦 {player['emoji']} 支付銀行 {fmt(v)} 萬利息。"
     elif t == "double_task":
-        st.session_state.double_task = True
-        st.session_state.message = f"😱 {player['emoji']} 下個地產任務難度加倍！"
+        player["double_task"] = True
+        st.session_state.message = f"😱 {player['emoji']} 下一次購買地產時，任務難度加倍！"
     elif t == "property_tax":
         tax = len(player["properties"]) * v
         pay(player, tax)
@@ -536,17 +490,6 @@ if not st.session_state.game_started:
         st.session_state.game_started = True
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("""
-    <div style='text-align:center; margin-top:2rem; padding:0.8rem;
-                background:linear-gradient(135deg,#fff0f5,#f3e5f5);
-                border-radius:16px; border:2px solid #ce93d8;'>
-        <p style='margin:0; color:#6a1b9a; font-size:0.88rem;'>
-        👩‍💻 <strong>開發者資訊 ─ 第 6 組</strong><br>
-        413670371 許瑾瑄 ・ 413570098 林庭安 ・ 413570141 胡馨文 ・ 41357015 林育穎
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
     st.stop()
 
 # ─── GAME OVER ────────────────────────────────────────────────────────────────
@@ -599,7 +542,6 @@ with left:
 
 # ─── MIDDLE: Board + action ────────────────────────────────────────────────────
 with mid:
-    # Mini board map
     st.markdown("<h3 style='color:#c2185b; text-align:center;'>🗺️ 遊戲地圖</h3>", unsafe_allow_html=True)
 
     cell_colors = {
@@ -611,19 +553,16 @@ with mid:
         "fate": "#ab47bc", "tax": "#ff5722", "jail": "#5c6bc0"
     }
 
-    # Positions of all players on board
     pos_map = {}
     for i, p in enumerate(st.session_state.players):
         if p["alive"]:
             pos_map.setdefault(p["pos"], []).append(p["emoji"])
 
-    # Draw board as 4 rows x 5 cols — single HTML block per row to avoid column rendering bugs
     rows = [BOARD[0:5], BOARD[5:10], BOARD[10:15], BOARD[15:20]]
     for row_idx, row in enumerate(rows):
         row_html = "<div style='display:grid; grid-template-columns:repeat(5,1fr); gap:4px; margin-bottom:4px;'>"
         for col_idx, cell in enumerate(row):
             board_idx = row_idx * 5 + col_idx
-            # Build token display: show each player emoji at this position
             players_here = pos_map.get(board_idx, [])
             tokens_html = ""
             if players_here:
@@ -637,7 +576,6 @@ with mid:
             bd = border_colors.get(cell["type"], "#ddd")
             has_players = bool(players_here)
             glow = "box-shadow:0 0 0 3px #ff6b9d, 0 2px 8px rgba(255,107,157,0.4); transform:scale(1.05);" if has_players else ""
-            # Owner dot for purchased districts
             owner_dot = ""
             if cell["type"] == "district" and cell["key"]:
                 for p in st.session_state.players:
@@ -671,7 +609,7 @@ with mid:
     # ── ROLL ─────────────────────────────────────────────────────────────────
     if phase == "roll":
         if cp["jail"] > 0:
-            st.markdown(f"<div class='msg-box'>🔒 {cp['emoji']} 在監獄中，還剩 {cp['jail']} 回合。自動跳過。</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='msg-box'>🔒 {cp['emoji']} 在監獄中，需暫停 {cp['jail']} 回合。</div>", unsafe_allow_html=True)
             if st.button("⏭️ 跳過回合"):
                 cp["jail"] -= 1
                 st.session_state.current_player = next_alive()
@@ -686,7 +624,6 @@ with mid:
                     st.session_state.last_dice = d
                     old_pos = cp["pos"]
                     new_pos = (old_pos + d) % BOARD_SIZE
-                    # Passed Go?
                     if new_pos < old_pos:
                         cp["money"] += 200
                         st.session_state.message = f"🏁 經過出發點，獲得 200 萬！"
@@ -694,14 +631,14 @@ with mid:
                         st.session_state.message = ""
                     cp["pos"] = new_pos
                     cell = BOARD[new_pos]
-                    # Handle special cells immediately
+                    
                     if cell["type"] == "go":
                         cp["money"] += 200
                         st.session_state.message = "🏁 停在出發點，額外獲得 200 萬！"
                         st.session_state.phase = "end_turn"
                     elif cell["type"] == "jail":
-                        cp["jail"] = 2
-                        st.session_state.message = f"🔒 {cp['emoji']} 進監獄！暫停 2 回合。"
+                        cp["jail"] = 1
+                        st.session_state.message = f"🔒 {cp['emoji']} 進監獄！暫停 1 回合。"
                         st.session_state.phase = "end_turn"
                     elif cell["type"] == "tax":
                         pay(cp, 300)
@@ -717,9 +654,8 @@ with mid:
                         st.session_state.phase = "card"
                     elif cell["type"] == "district":
                         dist_name = cell["key"]
-                        # Check if owned by another player
                         owner = None
-                        for pi, p in enumerate(st.session_state.players):
+                        for p in st.session_state.players:
                             if dist_name in p["properties"] and p is not cp:
                                 owner = p
                                 break
@@ -734,28 +670,23 @@ with mid:
                             st.session_state.phase = "end_turn"
                         else:
                             st.session_state.active_district = dist_name
-                            st.session_state.task_solved = False
-                            st.session_state.answer_submitted = False
-                            st.session_state.double_task = st.session_state.double_task  # keep flag
                             st.session_state.phase = "task"
                     st.rerun()
             with c2:
                 if st.session_state.last_dice:
                     d_num = st.session_state.last_dice
-                    svg = dice_svg(d_num)
                     dest_cell = BOARD[cp["pos"]]["label"]
                     st.markdown(
                         f"""<div style='text-align:center; padding:0.6rem;
                                     background:linear-gradient(135deg,#fff0f5,#ffe4ec);
                                     border-radius:18px; border:2px solid #ffb6c1;'>
-                            <div style='font-size:0.8rem; color:#888; margin-bottom:0.3rem;'>🎲 擲骰結果</div>
-                            <div style='animation:diceRoll 0.7s cubic-bezier(.36,.07,.19,.97) both;
-                                        display:inline-block;'>
-                                {svg}
+                            <div style='font-size:0.8rem; color:#888; margin-bottom:0.6rem;'>🎲 擲骰結果</div>
+                            <div style='animation:diceRoll 0.7s cubic-bezier(.36,.07,.19,.97) both; display:flex; justify-content:center;'>
+                                {dice_html(d_num)}
                             </div>
-                            <div style='margin-top:0.5rem;'>
-                                <span style='font-size:1.6rem; font-family:"Fredoka One",cursive;
-                                             color:#c2185b; font-weight:900;'>{d_num} 步</span>
+                            <div style='margin-top:0.8rem;'>
+                                <span style='font-size:2.2rem; font-family:"Fredoka One",cursive;
+                                             color:red; font-weight:900;'>{d_num} 步</span>
                             </div>
                             <div style='font-size:0.8rem; color:#555; margin-top:0.2rem;'>
                                 ➡️ 前往 <strong>{dest_cell}</strong>
@@ -804,18 +735,23 @@ with mid:
     elif phase == "task":
         dn = st.session_state.active_district
         d = DISTRICTS[dn]
-        double = st.session_state.double_task
+        double = cp.get("double_task", False)
 
         st.markdown(f"""
         <div class='card' style='border-color:{d['color']};'>
             <h3 style='color:{d['color']}; margin-top:0;'>📐 {dn} 統計任務</h3>
             <p>房價資料（萬/坪）：<strong>{d['data']}</strong></p>
-            <p>任務：<strong>{d['task']}</strong>{'<br>⚠️ 難度加倍！同時需計算平均數與中位數' if double else ''}</p>
+            <p>任務：<strong>{d['task']}</strong>{'<br><span style="color:red; font-weight:bold;">⚠️ 難度加倍！需同時輸入平均數與中位數</span>' if double else ''}</p>
             <p>地產售價：<strong>{fmt(d['price'])} 萬</strong></p>
         </div>
         """, unsafe_allow_html=True)
 
-        ans_str = st.text_input("請輸入答案（數字）：", key="task_ans", placeholder="請輸入數字...")
+        if double:
+            c1, c2 = st.columns(2)
+            with c1: ans_mean = st.text_input("輸入「平均數」：", key="ans_m1", placeholder="請輸入數字...")
+            with c2: ans_median = st.text_input("輸入「中位數」：", key="ans_m2", placeholder="請輸入數字...")
+        else:
+            ans_str = st.text_input("請輸入答案（數字）：", key="task_ans", placeholder="請輸入數字...")
 
         hint_cols = st.columns(2)
         with hint_cols[0]:
@@ -832,23 +768,32 @@ with mid:
         with btn1:
             if st.button("📝 提交答案"):
                 try:
-                    user_ans = float(ans_str.strip())
-                    correct = abs(user_ans - d["answer"]) < 0.6
+                    if double:
+                        u_mean = float(ans_mean.strip())
+                        u_med = float(ans_median.strip())
+                        correct = abs(u_mean - d["mean_ans"]) < 0.6 and abs(u_med - d["median_ans"]) < 0.6
+                        msg_c = f"✅ 答對了！平均數是 {d['mean_ans']}，中位數是 {d['median_ans']}。可以選擇購買地產！"
+                        msg_w = f"❌ 答錯了！正確平均數是 {d['mean_ans']}，中位數是 {d['median_ans']}。無法購買地產。"
+                    else:
+                        u_ans = float(ans_str.strip())
+                        correct = abs(u_ans - d["answer"]) < 0.6
+                        msg_c = f"✅ 答對了！答案是 {d['answer']}。可以選擇購買地產！"
+                        msg_w = f"❌ 答錯了！正確答案是 {d['answer']}。無法購買地產。"
+
                     if correct:
-                        st.session_state.task_solved = True
-                        st.session_state.double_task = False
-                        st.session_state.message = f"✅ 答對了！答案是 {d['answer']}。可以選擇購買地產！"
+                        cp["double_task"] = False # 消耗加倍卡狀態
+                        st.session_state.message = msg_c
                         st.session_state.phase = "buy"
                     else:
-                        st.session_state.message = f"❌ 答錯了！正確答案是 {d['answer']}。無法購買地產。"
-                        st.session_state.double_task = False
+                        cp["double_task"] = False
+                        st.session_state.message = msg_w
                         st.session_state.phase = "end_turn"
-                except:
+                    st.rerun()
+                except ValueError:
                     st.session_state.message = "⚠️ 請輸入有效數字！"
-                st.rerun()
         with btn2:
             if st.button("⏭️ 放棄任務"):
-                st.session_state.double_task = False
+                cp["double_task"] = False # 放棄也算消耗一次任務狀態
                 st.session_state.message = "😞 放棄任務，無法購買地產。"
                 st.session_state.phase = "end_turn"
                 st.rerun()
@@ -864,7 +809,7 @@ with mid:
         st.markdown(f"""
         <div class='card'>
             <h3 style='color:#c2185b; margin-top:0;'>🏠 購買 {dn}？</h3>
-            <p>售價：<strong>{fmt(price)} 萬</strong>{'（享 9 折優惠！）' if disc < 1 else ''}</p>
+            <p>售價：<strong>{fmt(price)} 萬</strong>{' <span style="color:red;font-weight:bold;">（享 9 折優惠！）</span>' if disc < 1 else ''}</p>
             <p>你的資金：<strong>{fmt(cp['money'])} 萬</strong></p>
             {'<p style="color:red;">⚠️ 資金不足！</p>' if not affordable else ''}
         </div>
@@ -875,13 +820,14 @@ with mid:
             if st.button("✅ 購買！", disabled=not affordable, use_container_width=True):
                 cp["money"] -= price
                 cp["properties"].append(dn)
-                cp["discount"] = 1.0  # reset discount
+                cp["discount"] = 1.0  # 消耗 9 折優惠
                 st.session_state.message = f"🎉 {cp['emoji']} 購入 {dn}！剩餘資金 {fmt(cp['money'])} 萬。"
                 st.session_state.phase = "end_turn"
                 st.session_state.active_district = None
                 st.rerun()
         with c2:
             if st.button("❌ 不買", use_container_width=True):
+                cp["discount"] = 1.0  # 若不買，一樣消耗 9 折優惠避免一直保留
                 st.session_state.message = f"🤔 {cp['emoji']} 決定不購買 {dn}。"
                 st.session_state.phase = "end_turn"
                 st.session_state.active_district = None
@@ -933,7 +879,7 @@ with right:
         "🃏 機會：好事降臨<br>"
         "🎴 命運：挑戰來臨<br>"
         "💸 國稅局：繳稅300萬<br>"
-        "🔒 監獄：暫停2回合<br>"
+        "🔒 監獄：暫停1回合<br>"
         "🏠 地產：答題才能買"
         "</div>"
         "<div style='margin-top:1rem; padding:0.6rem;"
