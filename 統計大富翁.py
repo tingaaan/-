@@ -1,6 +1,7 @@
 import streamlit as st
 import random
 import math
+import time
 
 # ─── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -38,7 +39,6 @@ html, body, [data-testid="stAppViewContainer"] {
 
 h1, h2, h3, h4 { font-family: 'Fredoka One', cursive; }
 
-/* Hide default streamlit chrome */
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
 
@@ -85,15 +85,6 @@ h1, h2, h3, h4 { font-family: 'Fredoka One', cursive; }
     transform: scale(1.03);
 }
 
-.district-btn {
-    display: inline-block;
-    padding: 0.25rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: default;
-}
-
 .chance-card {
     background: linear-gradient(135deg, #fff9c4, #fff3e0);
     border: 3px dashed #ffa000;
@@ -138,32 +129,6 @@ h1, h2, h3, h4 { font-family: 'Fredoka One', cursive; }
     border: 2px solid #90caf9;
     margin: 0.5rem 0;
 }
-
-/* Dice Roll Animation */
-@keyframes diceRoll {
-    0%   { transform: scale(0.3) rotate(-90deg); opacity: 0; }
-    30%  { transform: scale(1.3) rotate(20deg);  opacity: 1; }
-    55%  { transform: scale(0.9) rotate(-10deg); }
-    75%  { transform: scale(1.1) rotate(5deg); }
-    100% { transform: scale(1)   rotate(0deg); opacity: 1; }
-}
-
-/* Map grid */
-.map-cell {
-    border-radius: 10px;
-    padding: 0.3rem 0.2rem;
-    text-align: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-height: 58px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid;
-    position: relative;
-    cursor: default;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -175,91 +140,21 @@ PLAYERS = [
     {"name": "玩家4 兔", "emoji": "🐰", "color": "#ff9800"},
 ]
 
+MAX_TURNS = 20
+
 DISTRICTS = {
-    "萬華區": {
-        "data": [63, 44, 49, 58, 49],
-        "task": "由小到大排序並計算平均數",
-        "task_type": "sort_mean",
-        "answer": 52.6, "mean_ans": 52.6, "median_ans": 49,
-        "price": 500, "color": "#e91e63",
-    },
-    "信義區": {
-        "data": [170, 128, 100, 130, 88],
-        "task": "計算平均數",
-        "task_type": "mean",
-        "answer": 123.2, "mean_ans": 123.2, "median_ans": 128,
-        "price": 1200, "color": "#9c27b0",
-    },
-    "大安區": {
-        "data": [98, 121, 36, 85, 178],
-        "task": "計算中位數",
-        "task_type": "median",
-        "answer": 98, "mean_ans": 103.6, "median_ans": 98,
-        "price": 1500, "color": "#3f51b5",
-    },
-    "中和區": {
-        "data": [20, 22, 17, 33, 65],
-        "task": "計算平均數",
-        "task_type": "mean",
-        "answer": 31.4, "mean_ans": 31.4, "median_ans": 22,
-        "price": 350, "color": "#009688",
-    },
-    "板橋區": {
-        "data": [51, 10, 69, 53, 39],
-        "task": "計算平均數",
-        "task_type": "mean",
-        "answer": 44.4, "mean_ans": 44.4, "median_ans": 51,
-        "price": 400, "color": "#ff5722",
-    },
-    "新莊區": {
-        "data": [23, 15, 38, 85, 58],
-        "task": "計算中位數",
-        "task_type": "median",
-        "answer": 38, "mean_ans": 43.8, "median_ans": 38,
-        "price": 380, "color": "#795548",
-    },
-    "淡水區": {
-        "data": [48, 35, 64, 13, 30],
-        "task": "由小到大排序並找中位數",
-        "task_type": "sort_median",
-        "answer": 35, "mean_ans": 38.0, "median_ans": 35,
-        "price": 420, "color": "#607d8b",
-    },
-    "新店區": {
-        "data": [133, 19, 17, 15, 14],
-        "task": "避開極端值計算中位數（去掉133）",
-        "task_type": "trimmed_median",
-        "answer": 16.0, "mean_ans": 16.25, "median_ans": 16.0,
-        "price": 450, "color": "#4caf50",
-    },
-    "三重區": {
-        "data": [11, 39, 56, 42, 52],
-        "task": "計算平均數",
-        "task_type": "mean",
-        "answer": 40.0, "mean_ans": 40.0, "median_ans": 42,
-        "price": 360, "color": "#ff9800",
-    },
-    "士林區": {
-        "data": [36, 67, 90, 96, 45],
-        "task": "排序並找中位數",
-        "task_type": "sort_median",
-        "answer": 67, "mean_ans": 66.8, "median_ans": 67,
-        "price": 700, "color": "#00bcd4",
-    },
-    "北投區": {
-        "data": [13, 65, 80, 38, 40],
-        "task": "找中位數",
-        "task_type": "median",
-        "answer": 40, "mean_ans": 47.2, "median_ans": 40,
-        "price": 600, "color": "#8bc34a",
-    },
-    "中正區": {
-        "data": [73, 152, 151, 154, 157],
-        "task": "計算平均數",
-        "task_type": "mean",
-        "answer": 137.4, "mean_ans": 137.4, "median_ans": 152,
-        "price": 1000, "color": "#f44336",
-    },
+    "萬華區": {"data": [63, 44, 49, 58, 49], "task": "由小到大排序並計算平均數", "task_type": "sort_mean", "answer": 52.6, "mean_ans": 52.6, "median_ans": 49, "price": 500, "color": "#e91e63"},
+    "信義區": {"data": [170, 128, 100, 130, 88], "task": "計算平均數", "task_type": "mean", "answer": 123.2, "mean_ans": 123.2, "median_ans": 128, "price": 1200, "color": "#9c27b0"},
+    "大安區": {"data": [98, 121, 36, 85, 178], "task": "計算中位數", "task_type": "median", "answer": 98, "mean_ans": 103.6, "median_ans": 98, "price": 1500, "color": "#3f51b5"},
+    "中和區": {"data": [20, 22, 17, 33, 65], "task": "計算平均數", "task_type": "mean", "answer": 31.4, "mean_ans": 31.4, "median_ans": 22, "price": 350, "color": "#009688"},
+    "板橋區": {"data": [51, 10, 69, 53, 39], "task": "計算平均數", "task_type": "mean", "answer": 44.4, "mean_ans": 44.4, "median_ans": 51, "price": 400, "color": "#ff5722"},
+    "新莊區": {"data": [23, 15, 38, 85, 58], "task": "計算中位數", "task_type": "median", "answer": 38, "mean_ans": 43.8, "median_ans": 38, "price": 380, "color": "#795548"},
+    "淡水區": {"data": [48, 35, 64, 13, 30], "task": "由小到大排序並找中位數", "task_type": "sort_median", "answer": 35, "mean_ans": 38.0, "median_ans": 35, "price": 420, "color": "#607d8b"},
+    "新店區": {"data": [133, 19, 17, 15, 14], "task": "避開極端值計算中位數（去掉133）", "task_type": "trimmed_median", "answer": 16.0, "mean_ans": 16.25, "median_ans": 16.0, "price": 450, "color": "#4caf50"},
+    "三重區": {"data": [11, 39, 56, 42, 52], "task": "計算平均數", "task_type": "mean", "answer": 40.0, "mean_ans": 40.0, "median_ans": 42, "price": 360, "color": "#ff9800"},
+    "士林區": {"data": [36, 67, 90, 96, 45], "task": "排序並找中位數", "task_type": "sort_median", "answer": 67, "mean_ans": 66.8, "median_ans": 67, "price": 700, "color": "#00bcd4"},
+    "北投區": {"data": [13, 65, 80, 38, 40], "task": "找中位數", "task_type": "median", "answer": 40, "mean_ans": 47.2, "median_ans": 40, "price": 600, "color": "#8bc34a"},
+    "中正區": {"data": [73, 152, 151, 154, 157], "task": "計算平均數", "task_type": "mean", "answer": 137.4, "mean_ans": 137.4, "median_ans": 152, "price": 1000, "color": "#f44336"},
 }
 
 CHANCE_CARDS = [
@@ -276,7 +171,6 @@ FATE_CARDS = [
     {"title": "區域性地震風險！", "desc": "擲骰判定：若擲出 1 或 6，指定一處地產價值 -20%。", "type": "quake", "value": 0.2},
 ]
 
-# Board layout: 20 cells total in order
 BOARD = [
     {"type": "go",       "label": "出發點 🏁", "key": None},
     {"type": "district", "label": "萬華區",    "key": "萬華區"},
@@ -299,19 +193,11 @@ BOARD = [
     {"type": "chance",   "label": "機會 🃏",   "key": None},
     {"type": "district", "label": "中正區",    "key": "中正區"},
 ]
-
 BOARD_SIZE = len(BOARD)
 
 def dice_html(n):
     """回傳純 HTML+CSS 刻出的真實骰子"""
-    dots_map = {
-        1: [5],
-        2: [1, 9],
-        3: [1, 5, 9],
-        4: [1, 3, 7, 9],
-        5: [1, 3, 5, 7, 9],
-        6: [1, 3, 4, 6, 7, 9]
-    }
+    dots_map = {1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9]}
     grid = ""
     for i in range(1, 10):
         if i in dots_map.get(n, [5]):
@@ -343,7 +229,7 @@ def init_state():
     if "current_player" not in st.session_state:
         st.session_state.current_player = 0
     if "phase" not in st.session_state:
-        st.session_state.phase = "roll"          # roll | land | task | card | buy | end_turn
+        st.session_state.phase = "roll"
     if "last_dice" not in st.session_state:
         st.session_state.last_dice = None
     if "message" not in st.session_state:
@@ -358,6 +244,10 @@ def init_state():
         st.session_state.game_over = False
     if "winner" not in st.session_state:
         st.session_state.winner = None
+    if "total_turns" not in st.session_state:
+        st.session_state.total_turns = 0
+    if "end_reason" not in st.session_state:
+        st.session_state.end_reason = ""
 
 init_state()
 
@@ -379,6 +269,7 @@ def check_game_over():
     if len(alive) == 1:
         st.session_state.game_over = True
         st.session_state.winner = alive[0]
+        st.session_state.end_reason = "bankruptcy"
         return True
     return False
 
@@ -457,7 +348,7 @@ if not st.session_state.game_started:
 
     col1, col2 = st.columns([1,1])
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class='card'>
         <h3 style='color:#c2185b; margin-top:0;'>🐾 四位玩家</h3>
         <p>🐷 玩家1 豬 &nbsp;|&nbsp; 🐱 玩家2 貓<br>
@@ -471,17 +362,16 @@ if not st.session_state.game_started:
         </div>
         """, unsafe_allow_html=True)
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class='card'>
         <h3 style='color:#e65100; margin-top:0;'>🃏 機會 ＆ 命運</h3>
         <p>機會卡帶來好運，命運卡帶來挑戰！<br>
         共 8 張精心設計的卡片。</p>
         </div>
         <div class='card'>
-        <h3 style='color:#1565c0; margin-top:0;'>💼 特殊格子</h3>
-        <p>🔒 監獄：暫停一回合<br>
-        💸 國稅局：繳稅 300 萬<br>
-        🏁 出發點：經過獲得 200 萬</p>
+        <h3 style='color:#1565c0; margin-top:0;'>⏳ 遊戲規則</h3>
+        <p>🔒 監獄暫停一回合 ｜ 💸 國稅局繳 300 萬<br>
+        <strong>⚠️ 遊戲將在 {MAX_TURNS} 次行動後結束，<br>結算現金加地產價值，選出總資產王！</strong></p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -495,19 +385,30 @@ if not st.session_state.game_started:
 # ─── GAME OVER ────────────────────────────────────────────────────────────────
 if st.session_state.game_over:
     w = st.session_state.winner
+    reason_title = "⏳ 回合上限已達！" if st.session_state.end_reason == "turn_limit" else "💀 對手全數破產！"
+    
     st.markdown(f"""
     <div style='text-align:center; padding:3rem 1rem;'>
+        <h2 style='color:#e65100; font-family:"Fredoka One",cursive; margin-bottom:1rem;'>{reason_title}</h2>
         <div style='font-size:5rem'>{w['emoji']}</div>
         <h1 style='font-family:"Fredoka One",cursive; color:#c2185b; font-size:3rem;'>
             🏆 {w['name']} 獲勝！🏆
         </h1>
-        <p style='font-size:1.3rem; color:#555;'>最終資產：<strong>{fmt(w['money'])} 萬</strong></p>
+        <div style='background: white; border: 3px solid #ffb6c1; border-radius: 15px; padding: 1.5rem; display: inline-block; margin-top: 1rem;'>
+            <p style='font-size:1.3rem; color:#555; margin:0 0 10px 0;'>最終現金：<strong>{fmt(w['money'])} 萬</strong></p>
+            <p style='font-size:1.3rem; color:#555; margin:0 0 10px 0;'>地產價值：<strong>{fmt(w.get('net_worth', w['money']) - w['money'])} 萬</strong></p>
+            <hr style='border-top: 2px dashed #ccc;'>
+            <h2 style='color:#c2185b; margin:10px 0 0 0;'>總淨值：{fmt(w.get('net_worth', w['money']))} 萬</h2>
+        </div>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("🔄 重新開始"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
+    
+    col1, col2, col3 = st.columns([1,1,1])
+    with col2:
+        if st.button("🔄 重新開始", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
     st.stop()
 
 # ─── MAIN GAME LAYOUT ─────────────────────────────────────────────────────────
@@ -542,7 +443,14 @@ with left:
 
 # ─── MIDDLE: Board + action ────────────────────────────────────────────────────
 with mid:
-    st.markdown("<h3 style='color:#c2185b; text-align:center;'>🗺️ 遊戲地圖</h3>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style='text-align:center; margin-bottom: 5px;'>
+            <span style='background-color:#ff6b9d; color:white; padding: 5px 15px; border-radius: 20px; font-weight: bold;'>
+                ⏳ 剩餘行動次數：{MAX_TURNS - st.session_state.total_turns} / {MAX_TURNS}
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#c2185b; text-align:center; margin-top:10px;'>🗺️ 遊戲地圖</h3>", unsafe_allow_html=True)
 
     cell_colors = {
         "go": "#e8f5e9", "district": "#fff0f5", "chance": "#fff9c4",
@@ -612,98 +520,133 @@ with mid:
             st.markdown(f"<div class='msg-box'>🔒 {cp['emoji']} 在監獄中，需暫停 {cp['jail']} 回合。</div>", unsafe_allow_html=True)
             if st.button("⏭️ 跳過回合"):
                 cp["jail"] -= 1
-                st.session_state.current_player = next_alive()
-                st.session_state.message = ""
-                st.session_state.phase = "roll"
+                st.session_state.phase = "end_turn"
                 st.rerun()
         else:
             c1, c2 = st.columns(2)
+            
+            # 使用 empty 元件來預留骰子動畫的位置
+            dice_ph = c2.empty()
+            
             with c1:
-                if st.button("🎲 擲骰子！", use_container_width=True):
-                    d = random.randint(1, 6)
-                    st.session_state.last_dice = d
-                    old_pos = cp["pos"]
-                    new_pos = (old_pos + d) % BOARD_SIZE
-                    if new_pos < old_pos:
-                        cp["money"] += 200
-                        st.session_state.message = f"🏁 經過出發點，獲得 200 萬！"
-                    else:
-                        st.session_state.message = ""
-                    cp["pos"] = new_pos
-                    cell = BOARD[new_pos]
-                    
-                    if cell["type"] == "go":
-                        cp["money"] += 200
-                        st.session_state.message = "🏁 停在出發點，額外獲得 200 萬！"
-                        st.session_state.phase = "end_turn"
-                    elif cell["type"] == "jail":
-                        cp["jail"] = 1
-                        st.session_state.message = f"🔒 {cp['emoji']} 進監獄！暫停 1 回合。"
-                        st.session_state.phase = "end_turn"
-                    elif cell["type"] == "tax":
-                        pay(cp, 300)
-                        st.session_state.message = f"💸 {cp['emoji']} 繳國稅 300 萬！"
-                        st.session_state.phase = "end_turn"
-                    elif cell["type"] == "chance":
-                        card = random.choice(CHANCE_CARDS)
-                        st.session_state.active_card = ("chance", card)
-                        st.session_state.phase = "card"
-                    elif cell["type"] == "fate":
-                        card = random.choice(FATE_CARDS)
-                        st.session_state.active_card = ("fate", card)
-                        st.session_state.phase = "card"
-                    elif cell["type"] == "district":
-                        dist_name = cell["key"]
-                        owner = None
-                        for p in st.session_state.players:
-                            if dist_name in p["properties"] and p is not cp:
-                                owner = p
-                                break
-                        if owner:
-                            rent = DISTRICTS[dist_name]["price"] // 4
-                            pay(cp, rent)
-                            owner["money"] += rent
-                            st.session_state.message = f"🏠 {dist_name} 屬於 {owner['emoji']}！支付租金 {fmt(rent)} 萬。"
-                            st.session_state.phase = "end_turn"
-                        elif dist_name in cp["properties"]:
-                            st.session_state.message = f"🏠 這是你自己的地產：{dist_name}！"
-                            st.session_state.phase = "end_turn"
-                        else:
-                            st.session_state.active_district = dist_name
-                            st.session_state.phase = "task"
-                    st.rerun()
-            with c2:
-                if st.session_state.last_dice:
-                    d_num = st.session_state.last_dice
-                    dest_cell = BOARD[cp["pos"]]["label"]
-                    st.markdown(
-                        f"""<div style='text-align:center; padding:0.6rem;
-                                    background:linear-gradient(135deg,#fff0f5,#ffe4ec);
-                                    border-radius:18px; border:2px solid #ffb6c1;'>
-                            <div style='font-size:0.8rem; color:#888; margin-bottom:0.6rem;'>🎲 擲骰結果</div>
-                            <div style='animation:diceRoll 0.7s cubic-bezier(.36,.07,.19,.97) both; display:flex; justify-content:center;'>
-                                {dice_html(d_num)}
+                roll_btn = st.button("🎲 擲骰子！", use_container_width=True)
+
+            if roll_btn:
+                # ─── 動畫階段 ───
+                # 快速改變骰子點數與角度，模擬旋轉感
+                for _ in range(12):
+                    temp_d = random.randint(1, 6)
+                    rot = random.randint(-25, 25)
+                    dice_ph.markdown(
+                        f"""<div style='text-align:center; padding:0.6rem; background:linear-gradient(135deg,#fff0f5,#ffe4ec); border-radius:18px; border:2px solid #ffb6c1;'>
+                            <div style='font-size:0.8rem; color:#888; margin-bottom:0.6rem;'>🎲 擲骰中...</div>
+                            <div style='display:flex; justify-content:center; transform:rotate({rot}deg); transition: transform 0.05s;'>
+                                {dice_html(temp_d)}
                             </div>
                             <div style='margin-top:0.8rem;'>
-                                <span style='font-size:2.2rem; font-family:"Fredoka One",cursive;
-                                             color:red; font-weight:900;'>{d_num} 步</span>
+                                <span style='font-size:2.2rem; color:transparent;'>0 步</span>
                             </div>
-                            <div style='font-size:0.8rem; color:#555; margin-top:0.2rem;'>
-                                ➡️ 前往 <strong>{dest_cell}</strong>
-                            </div>
-                        </div>""",
-                        unsafe_allow_html=True
+                        </div>""", unsafe_allow_html=True
                     )
-                else:
-                    st.markdown(
-                        """<div style='text-align:center; padding:1.2rem 0.6rem;
-                                    background:linear-gradient(135deg,#fff0f5,#ffe4ec);
-                                    border-radius:18px; border:2px dashed #ffb6c1;'>
-                            <div style='font-size:3rem; opacity:0.25;'>🎲</div>
-                            <div style='font-size:0.8rem; color:#ccc; margin-top:0.3rem;'>按左側按鈕擲骰</div>
-                        </div>""",
-                        unsafe_allow_html=True
-                    )
+                    time.sleep(0.08) # 控制旋轉速度
+
+                # ─── 最終結果結算 ───
+                d = random.randint(1, 6)
+                st.session_state.last_dice = d
+                old_pos = cp["pos"]
+                new_pos = (old_pos + d) % BOARD_SIZE
+                
+                pass_go_msg = ""
+                if new_pos < old_pos:
+                    cp["money"] += 200
+                    pass_go_msg = "🏁 經過出發點，獲得 200 萬！<br>"
+                
+                cp["pos"] = new_pos
+                cell = BOARD[new_pos]
+                dest_name = cell['label']
+
+                # 將最終點數畫上去，加上放大動畫
+                dice_ph.markdown(
+                    f"""<div style='text-align:center; padding:0.6rem; background:linear-gradient(135deg,#fff0f5,#ffe4ec); border-radius:18px; border:2px solid #ffb6c1; box-shadow: 0 4px 15px rgba(255,107,157,0.4);'>
+                        <div style='font-size:0.8rem; color:#888; margin-bottom:0.6rem;'>🎲 擲骰結果</div>
+                        <div style='display:flex; justify-content:center; transform:scale(1.1);'>
+                            {dice_html(d)}
+                        </div>
+                        <div style='margin-top:0.8rem; animation: popText 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;'>
+                            <span style='font-size:2.5rem; font-family:"Fredoka One",cursive; color:red; font-weight:900;'>{d} 步</span>
+                        </div>
+                        <div style='font-size:0.8rem; color:#555; margin-top:0.2rem;'>
+                            ➡️ 前往 <strong>{dest_name}</strong>
+                        </div>
+                    </div>
+                    <style>@keyframes popText {{ 0% {{transform:scale(0.5); opacity:0;}} 100% {{transform:scale(1); opacity:1;}} }}</style>
+                    """, unsafe_allow_html=True
+                )
+                
+                # 停留一小段時間讓玩家看清楚點數
+                time.sleep(1.2)
+                
+                # ─── 切換遊戲狀態 ───
+                # 將擲骰訊息記錄下來，讓切換畫面後玩家依然記得
+                roll_msg = f"{pass_go_msg}🎲 擲出 {d} 步！"
+                
+                if cell["type"] == "go":
+                    cp["money"] += 200
+                    st.session_state.message = f"{roll_msg}停在出發點，額外再獲 200 萬！"
+                    st.session_state.phase = "end_turn"
+                elif cell["type"] == "jail":
+                    cp["jail"] = 1
+                    st.session_state.message = f"{roll_msg}🔒 {cp['emoji']} 進監獄！暫停 1 回合。"
+                    st.session_state.phase = "end_turn"
+                elif cell["type"] == "tax":
+                    pay(cp, 300)
+                    st.session_state.message = f"{roll_msg}💸 {cp['emoji']} 繳國稅 300 萬！"
+                    st.session_state.phase = "end_turn"
+                elif cell["type"] == "chance":
+                    card = random.choice(CHANCE_CARDS)
+                    st.session_state.active_card = ("chance", card)
+                    st.session_state.message = f"{roll_msg}來到了機會卡。"
+                    st.session_state.phase = "card"
+                elif cell["type"] == "fate":
+                    card = random.choice(FATE_CARDS)
+                    st.session_state.active_card = ("fate", card)
+                    st.session_state.message = f"{roll_msg}來到了命運卡。"
+                    st.session_state.phase = "card"
+                elif cell["type"] == "district":
+                    dist_name = cell["key"]
+                    owner = None
+                    for p in st.session_state.players:
+                        if dist_name in p["properties"] and p is not cp:
+                            owner = p
+                            break
+                    if owner:
+                        rent = DISTRICTS[dist_name]["price"] // 4
+                        pay(cp, rent)
+                        owner["money"] += rent
+                        st.session_state.message = f"{roll_msg}🏠 {dist_name} 屬於 {owner['emoji']}！支付租金 {fmt(rent)} 萬。"
+                        st.session_state.phase = "end_turn"
+                    elif dist_name in cp["properties"]:
+                        st.session_state.message = f"{roll_msg}🏠 這是你自己的地產：{dist_name}！"
+                        st.session_state.phase = "end_turn"
+                    else:
+                        st.session_state.active_district = dist_name
+                        st.session_state.message = f"{roll_msg}來到了無主地產：{dist_name}。"
+                        st.session_state.phase = "task"
+                
+                # 自動重新載入，進入下一個階段
+                st.rerun()
+
+            else:
+                # 尚未點擊時的預設提示框
+                dice_ph.markdown(
+                    """<div style='text-align:center; padding:1.2rem 0.6rem;
+                                background:linear-gradient(135deg,#fff0f5,#ffe4ec);
+                                border-radius:18px; border:2px dashed #ffb6c1;'>
+                        <div style='font-size:3rem; opacity:0.25;'>🎲</div>
+                        <div style='font-size:0.8rem; color:#ccc; margin-top:0.3rem;'>按左側按鈕擲骰</div>
+                    </div>""",
+                    unsafe_allow_html=True
+                )
 
     # ── CARD ─────────────────────────────────────────────────────────────────
     elif phase == "card":
@@ -728,7 +671,6 @@ with mid:
             apply_card(card, cp)
             st.session_state.active_card = None
             st.session_state.phase = "end_turn"
-            check_game_over()
             st.rerun()
 
     # ── TASK ─────────────────────────────────────────────────────────────────
@@ -781,7 +723,7 @@ with mid:
                         msg_w = f"❌ 答錯了！正確答案是 {d['answer']}。無法購買地產。"
 
                     if correct:
-                        cp["double_task"] = False # 消耗加倍卡狀態
+                        cp["double_task"] = False 
                         st.session_state.message = msg_c
                         st.session_state.phase = "buy"
                     else:
@@ -793,7 +735,7 @@ with mid:
                     st.session_state.message = "⚠️ 請輸入有效數字！"
         with btn2:
             if st.button("⏭️ 放棄任務"):
-                cp["double_task"] = False # 放棄也算消耗一次任務狀態
+                cp["double_task"] = False 
                 st.session_state.message = "😞 放棄任務，無法購買地產。"
                 st.session_state.phase = "end_turn"
                 st.rerun()
@@ -820,14 +762,14 @@ with mid:
             if st.button("✅ 購買！", disabled=not affordable, use_container_width=True):
                 cp["money"] -= price
                 cp["properties"].append(dn)
-                cp["discount"] = 1.0  # 消耗 9 折優惠
+                cp["discount"] = 1.0  
                 st.session_state.message = f"🎉 {cp['emoji']} 購入 {dn}！剩餘資金 {fmt(cp['money'])} 萬。"
                 st.session_state.phase = "end_turn"
                 st.session_state.active_district = None
                 st.rerun()
         with c2:
             if st.button("❌ 不買", use_container_width=True):
-                cp["discount"] = 1.0  # 若不買，一樣消耗 9 折優惠避免一直保留
+                cp["discount"] = 1.0  
                 st.session_state.message = f"🤔 {cp['emoji']} 決定不購買 {dn}。"
                 st.session_state.phase = "end_turn"
                 st.session_state.active_district = None
@@ -836,15 +778,32 @@ with mid:
     # ── END TURN ─────────────────────────────────────────────────────────────
     elif phase == "end_turn":
         check_bankruptcy(cp)
-        check_game_over()
-        if not st.session_state.game_over:
+        
+        if not check_game_over():
             if st.button("⏭️ 結束回合，換下一位玩家"):
-                st.session_state.current_player = next_alive()
-                st.session_state.phase = "roll"
-                st.session_state.last_dice = None
-                st.session_state.message = ""
-                st.session_state.active_card = None
-                st.session_state.active_district = None
+                st.session_state.total_turns += 1
+                
+                if st.session_state.total_turns >= MAX_TURNS:
+                    for p in st.session_state.players:
+                        if p["alive"]:
+                            prop_value = sum([DISTRICTS[prop]["price"] for prop in p["properties"]])
+                            p["net_worth"] = p["money"] + prop_value
+                        else:
+                            p["net_worth"] = 0
+                            
+                    alive_players = [p for p in st.session_state.players if p["alive"]]
+                    winner = max(alive_players, key=lambda x: x["net_worth"])
+                    
+                    st.session_state.winner = winner
+                    st.session_state.end_reason = "turn_limit"
+                    st.session_state.game_over = True
+                else:
+                    st.session_state.current_player = next_alive()
+                    st.session_state.phase = "roll"
+                    st.session_state.last_dice = None
+                    st.session_state.message = ""
+                    st.session_state.active_card = None
+                    st.session_state.active_district = None
                 st.rerun()
 
 # ─── RIGHT: Info panel ────────────────────────────────────────────────────────
