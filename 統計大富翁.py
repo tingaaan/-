@@ -1,7 +1,6 @@
 import streamlit as st
 import random
 import math
-import time
 
 # ─── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -705,51 +704,47 @@ with mid:
                     )
 
     # ══════════════════════════════════════════════════════════════════════════
-    # ── DICE ANIMATION phase ──────────────────────────────────────────────────
-    #   1. 用純 HTML/JS 在原地跑「快速變換點數 → 停在真實點數 → 彈字」動畫
-    #   2. Python 端 time.sleep(2.4) 然後 process_move + rerun
+    # ── DICE ANIMATION phase ──────────────────────────────────════════════════
+    #   純前端：JS 動畫結束後自動點擊隱藏按鈕觸發 rerun，完全不 sleep
     # ══════════════════════════════════════════════════════════════════════════
     elif phase == "dice_anim":
         d_final = st.session_state.dice_pending
         dest_cell = BOARD[(cp["pos"] + d_final) % BOARD_SIZE]["label"]
 
-        # ── 骰子動畫 HTML ──────────────────────────────────────────────────
-        # 預先把所有 6 種骰面 HTML 嵌入，JS 定時切換再停在最終值
         dots_map = {1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9]}
 
         def make_grid_html(num):
             g = ""
-            for i in range(1,10):
+            for i in range(1, 10):
                 if i in dots_map[num]:
                     g += "<div style='width:20px;height:20px;background:#ff6b9d;border-radius:50%;margin:4px;box-shadow:inset 0 2px 4px rgba(0,0,0,.1);'></div>"
                 else:
                     g += "<div style='width:20px;height:20px;margin:4px;'></div>"
             return g
 
-        faces_js = "{" + ",".join([f"{n}: `{make_grid_html(n)}`" for n in range(1,7)]) + "}"
+        faces_js = "{" + ",".join([f"{n}: `{make_grid_html(n)}`" for n in range(1, 7)]) + "}"
 
+        # 動畫說明：
+        #   0–1000 ms  快速旋轉換面
+        #   1000–1550 ms  停在真實點數 + diceRoll 彈入
+        #   1550–1730 ms  「N 步」pop-in
+        #   1730+1200 ms  停留讓玩家看清 → 點擊隱藏按鈕觸發 rerun
         anim_html = f"""
-        <div style='text-align:center; padding:0.6rem;
+        <div style='text-align:center;padding:0.6rem;
                     background:linear-gradient(135deg,#fff0f5,#ffe4ec);
-                    border-radius:18px; border:2px solid #ffb6c1;'>
-            <div style='font-size:0.8rem; color:#888; margin-bottom:0.6rem;'>🎲 擲骰結果</div>
-
-            <!-- 骰子容器 -->
-            <div id="dice-wrap" style='display:flex;justify-content:center;'>
+                    border-radius:18px;border:2px solid #ffb6c1;'>
+            <div style='font-size:0.8rem;color:#888;margin-bottom:0.6rem;'>🎲 擲骰結果</div>
+            <div style='display:flex;justify-content:center;'>
                 <div id="dice-face"
                      style='width:96px;height:96px;background:white;border:3px solid #ffb6c1;
                             border-radius:18px;display:grid;grid-template-columns:repeat(3,1fr);
                             grid-template-rows:repeat(3,1fr);padding:3px;
                             box-shadow:0 4px 10px rgba(255,107,157,.3);
-                            transform-origin:center center;'>
-                </div>
+                            transform-origin:center center;'></div>
             </div>
-
-            <!-- 最終點數文字（初始隱藏） -->
-            <div id="dice-steps" style='margin-top:0.8rem; opacity:0; transform:scale(0) rotate(-15deg);
-                                        transition:none; display:block;'>
-                <span style='font-size:2.2rem;font-family:"Fredoka One",cursive;
-                             color:red;font-weight:900;'>{d_final} 步</span>
+            <div id="dice-steps"
+                 style='margin-top:0.8rem;opacity:0;transform:scale(0) rotate(-15deg);display:block;'>
+                <span style='font-size:2.2rem;font-family:"Fredoka One",cursive;color:red;font-weight:900;'>{d_final} 步</span>
             </div>
             <div id="dice-dest" style='font-size:0.8rem;color:#555;margin-top:0.2rem;opacity:0;'>
                 ➡️ 前往 <strong>{dest_cell}</strong>
@@ -757,7 +752,7 @@ with mid:
         </div>
 
         <script>
-        (function(){{
+        (function() {{
             const faces   = {faces_js};
             const final   = {d_final};
             const el      = document.getElementById('dice-face');
@@ -765,53 +760,66 @@ with mid:
             const destEl  = document.getElementById('dice-dest');
             if (!el) return;
 
-            // ── Phase 1: 快速隨機切換（0 ~ 1000 ms），每 80 ms 換一次 ──
+            // Phase 1: 快速旋轉換面（每 80ms，持續 1000ms）
             let t = 0;
-            const spinInterval = setInterval(() => {{
-                const rnd = (Math.floor(Math.random() * 6) + 1);
-                el.innerHTML = faces[rnd];
-                // 旋轉效果：每格旋轉角度稍微不同
-                const angle = (t % 4) * 90;
-                el.style.transform = `rotate(${{angle}}deg) scale(${{1 + (t%3)*0.05}})`;
+            const spin = setInterval(() => {{
+                el.innerHTML = faces[Math.floor(Math.random() * 6) + 1];
+                el.style.transform = `rotate(${{(t % 4) * 90}}deg) scale(${{1 + (t % 3) * 0.05}})`;
                 t++;
             }}, 80);
 
-            // ── Phase 2: 1000 ms 後停下，顯示真實點數 ──
+            // Phase 2: 停在真實點數 + 彈入動畫
             setTimeout(() => {{
-                clearInterval(spinInterval);
+                clearInterval(spin);
                 el.innerHTML = faces[final];
-                // 彈入動畫（CSS keyframes）
                 el.style.animation = 'diceRoll 0.55s cubic-bezier(.36,.07,.19,.97) both';
                 el.style.transform = '';
 
-                // 稍等 550 ms，讓骰子動畫結束後再彈出「N 步」
+                // Phase 3: 「N 步」pop-in
                 setTimeout(() => {{
-                    stepsEl.style.transition = 'opacity 0.05s, transform 0.45s cubic-bezier(.36,.07,.19,.97)';
+                    stepsEl.style.transition = 'none';
                     stepsEl.style.opacity    = '1';
-                    stepsEl.style.transform  = 'scale(1) rotate(0deg)';
-                    // 手動 pop-in：先放大再回正
                     stepsEl.style.transform  = 'scale(1.4) rotate(5deg)';
-                    setTimeout(() => {{
-                        stepsEl.style.transition = 'transform 0.2s ease-out, opacity 0.05s';
+                    requestAnimationFrame(() => requestAnimationFrame(() => {{
+                        stepsEl.style.transition = 'transform 0.22s ease-out';
                         stepsEl.style.transform  = 'scale(1) rotate(0deg)';
-                    }}, 180);
+                    }}));
                     destEl.style.transition = 'opacity 0.4s';
                     destEl.style.opacity    = '1';
-                }}, 550);
 
+                    // Phase 4: 停留 1200ms 後點擊隱藏按鈕，觸發 Streamlit rerun
+                    setTimeout(() => {{
+                        // Streamlit 把按鈕的 label 放在 <p> 裡
+                        const allBtns = window.parent.document.querySelectorAll('button');
+                        for (const b of allBtns) {{
+                            if (b.innerText.trim() === '__proceed__') {{
+                                b.click();
+                                break;
+                            }}
+                        }}
+                    }}, 1200);
+                }}, 550);
             }}, 1000);
         }})();
         </script>
         """
+
         st.markdown(anim_html, unsafe_allow_html=True)
 
-        # ── Python 端等待動畫結束後執行移動邏輯 ──────────────────────────
-        # 動畫總時長 ≈ 1000 + 550 + 180 = ~1730 ms → 等 2.4 s 讓玩家看清楚
-        time.sleep(2.4)
-        process_move(cp, d_final)
-        st.session_state.dice_pending = None
-        st.session_state.dice_animating = False
-        st.rerun()
+        # 隱藏按鈕：JS 動畫結束後自動點擊它觸發 rerun
+        # 用 CSS 藏起來（不能 display:none，否則 Streamlit 不 render）
+        st.markdown("""<style>
+        [data-testid="stButton"]:has(p:contains("__proceed__")) button {
+            position:fixed!important;left:-9999px!important;top:-9999px!important;
+            opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;
+        }
+        </style>""", unsafe_allow_html=True)
+
+        if st.button("__proceed__", key="dice_proceed"):
+            process_move(cp, d_final)
+            st.session_state.dice_pending = None
+            st.session_state.dice_animating = False
+            st.rerun()
 
     # ══════════════════════════════════════════════════════════════════════════
     # ── CARD phase ────────────────────────────────────────────────────────────
